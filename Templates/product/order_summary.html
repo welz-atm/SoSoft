@@ -1,0 +1,83 @@
+{% extends 'authenticate/base.html' %}
+{% load static %}
+{% block content %}
+{% load paystack %}
+
+<section id="main-content">
+    <section class="wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h3 class="page-header"><i class="fa fa-users"></i> My Cart</h3>
+
+            </div>
+        </div>
+        <!-- page start-->
+
+
+        <div class="row">
+            <div class="col-lg-12">
+                <section class="panel">
+                    <header class="panel-heading">
+
+                    </header>
+                </section>
+
+                <table class="table table-responsive">
+                    <thead>
+                    <tr>
+                        <td><strong>Item Image</strong></td>
+                        <td><strong>Item Name</strong></td>
+                        <td class="text-center"><strong>Item Price</strong></td>
+                        <td class="text-center"><strong>Item Quantity</strong></td>
+                        <td class="text-right"><strong>Total</strong></td>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for ord in orders.order.all %}
+                    <tr>
+                        <td><img src='{{ord.product.image.url}}' alt='{{ ord.product.title }}' class="img-thumbnail" height="75" width="75"></td>
+                        <td>{{ord.product.name}}</td>
+                        <td class="text-center">{{ord.product.price}}</td>
+                        <td class="text-center">{{ord.quantity}} <br><a class="btn btn-info"
+                                                                        href="#"
+                                                                        data-toggle="tooltip" data-placement="top"
+                                                                        title="Update Quantity"><i
+                                class="icon_plus_alt2"></i></a></td>
+                        <td class="text-right">{{ord.get_price}}</td>
+                        <td class="text-right"><br><a class="btn btn-danger" href="{% url 'remove_cart' pk=ord.pk %}"
+                                                      data-toggle="tooltip" data-placement="top"
+                                                      title="Remove from Cart"><i class="icon_plus_alt2"></i></a></td>
+                    </tr>
+                    {% endfor %}
+
+                    <tr>
+                        <td class="highrow"></td>
+                        <td class="highrow"></td>
+                        <td class="highrow text-center"><strong>Subtotal</strong></td>
+                        <td class="highrow text-right">{{ orders.final_price }}</td>
+                    </tr>
+
+                    <tr>
+                        <td class="emptyrow"></td>
+                        <td class="emptyrow"></td>
+                        <td class="emptyrow text-center"><strong>Total</strong></td>
+                        <td class="emptyrow text-right">{{ orders.final_price }}</td>
+                    </tr>
+
+                    </tbody>
+                </table>
+                <div class="text-right">
+                    <a class='btn btn-primary' href="{% url 'home' %}">Continue Shopping</a>
+                    <a class='btn btn-primary' href="{% url 'all_products' %}">Continue with Orders</a>
+
+                </div>
+            </div>
+
+        </div>
+        </div>
+        <!-- page end-->
+    </section>
+</section>
+
+
+{% endblock %}

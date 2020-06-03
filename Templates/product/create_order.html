@@ -1,0 +1,78 @@
+{% extends 'authenticate/base.html' %}
+{% load static %}
+{% block content %}
+
+
+<!--main content start-->
+<section id="main-content">
+    <section class="wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h3 class="page-header"><i class="fa fa-table"></i> Create Order</h3>
+                <ol class="breadcrumb">
+                    <li><i class="fa fa-home"></i><a href="index.html">Home</a></li>
+                    <li><i class="fa fa-table"></i>Table</li>
+                    <li><i class="fa fa-th-list"></i>Basic Table</li>
+                </ol>
+            </div>
+        </div>
+        <!-- page start-->
+
+
+        <div class="row">
+            <div class="col-lg-12">
+                <section class="panel">
+                    <header class="panel-heading">
+                        Create Order
+                    </header>
+
+                </section>
+                <form >
+
+                     <script src=”http://js.paystack.co/v1/inline.js”><script>
+
+                        <div class="text-right">
+                        <button type=”button”, onclick=”MakePayment()”>
+                    </div>
+                    </form>
+
+            </div>
+        </div>
+        <!-- page end-->
+    </section>
+</section>
+<!--main content end-->
+<div class="text-right">
+    <div class="credits">
+        <!--
+          All the links in the footer should remain intact.
+          You can delete the links only if you purchased the pro version.
+          Licensing information: https://bootstrapmade.com/license/
+          Purchase the pro version form: https://bootstrapmade.com/buy/?theme=NiceAdmin
+        -->
+        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+    </div>
+</div>
+
+ <script>
+    function MakePayment(){
+        var handler = paystackPop.setup({
+            key = ‘public_key’ //public key from your paystack
+            account
+            email: {{email}},
+            amount: “amount to be paied”,
+            currency: “NGN”,
+            ref: “” +Math.floor((Math.random() * 100000000) + 1),
+            callback: function (response){
+                alert(‘congrats transaction successful, your
+                      transcation id is ’ + response.reference);
+            },
+            onclose: function(){
+                alert(‘window closed’)
+            },
+        }),
+        handler.openIframe();
+    }
+    window.onload = MakePayment();
+</script>
+{% endblock %}

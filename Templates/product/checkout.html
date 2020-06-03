@@ -1,0 +1,62 @@
+{% extends 'authenticate/base.html' %}
+{% load static %}
+{% block content %}
+
+{% load paystack %}
+
+<section id="main-content">
+    <section class="wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h3 class="page-header"><i class="fa fa-file-text-o"></i> Registration Page</h3>
+                <ol class="breadcrumb">
+                    <li><i class="fa fa-home"></i><a href="#">Home</a></li>
+                    <li><i class="icon_document_alt"></i>Forms</li>
+                    <li><i class="fa fa-file-text-o"></i>Form elements</li>
+                </ol>
+            </div>
+        </div>
+        <div class="row">
+            <section class="col-lg-12">
+                <section class="panel">
+                    <header class="panel-heading">
+                        Register User
+                    </header>
+                    <div class="panel-body">
+
+                    </div>
+                </section>
+
+                <form>
+                    <script src=”http://js.paystack.co/v1/inline.js”></script>
+                    <button type=”button” onclick=”MakePayment()”>Hey Click me</button>
+                </form>
+            </section>
+        </div>
+    </section>
+</section>
+
+<script>
+    function MakePayment(){
+        var handler = paystackPop.setup({
+            key = ‘pk_test_13ccf12075c72dc081247c781e319ce503eecd02’ //public key from your paystack
+            account
+            email: {{user.email}},
+            amount: {{order.final_price}},
+            currency: “NGN”,
+            ref: “” +Math.floor((Math.random() * 100000000) + 1),
+            callback: function (response){
+                alert(‘congrats transaction successful, your
+                      transcation id is ’ + response.reference);
+            },
+            onclose: function(){
+                alert(‘window closed’)
+            },
+        }),
+        handler.openIframe();
+    }
+    window.onload = MakePayment();
+
+
+</script>
+{% endblock %}
