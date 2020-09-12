@@ -1,34 +1,32 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,HttpResponse
 from django.contrib.auth import authenticate,login,logout,update_session_auth_hash
 from django.contrib import messages
-from .models import CustomUser
-from product.models import Warehouse,Production,Order
+from .models import CustomUser,Department
+from .forms import InitialEmployeeForm,InitialEmployeeEditForm,EmployeeFormNonEditable,DepartmentForm
+from hr.forms import SkillForm,ExperienceForm,EducationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
-from .forms import EmployeeEditForm,EmployeeForm,GuarantorForm,DistributorForm
-from datetime import date
+from django.core.exceptions import PermissionDenied
+from django.db.models import Sum
+from hr.models import Skill,Experience,Education
+from production.models import Production
+from order.models import Order
+from warehouse.models import Warehouse
 
 
 @login_required()
 def home_view(request):
-    return render(request ,'authenticate/index.html',{})
-
-
-def choose_dept(request):
-    return render(request,'authenticate/choose_dept.html',{})
-
-
-def dashboard(request):
+    sales = CustomUser.objects.get(user=request.user)
     produced = Production.objects.all().count()
-    purchased = Order.objects.filter(is_paid=True).count()
+    purchased = Order.objects.filter(order_by=sales).aggregate(Sum('amount_received'))['amount_received__sum']
     warehouses = Warehouse.objects.all()
 
     context = {
-        'produced':produced,
-        'purchased':purchased,
-        'warehouses':warehouses
+        'produced': produced,
+        'purchased': purchased,
+        'warehouses': warehouses
     }
-    return  render(request,'authenticate/dashboard.html',context)
+    return render(request,'authenticate/dashboard.html',context)
 
 
 def login_user(request):
@@ -38,34 +36,18 @@ def login_user(request):
         user = authenticate(request, username=email, password=password)
         if user is not None:
             xx = CustomUser.objects.get(email=email)
-            if xx.is_authenticated and xx.is_active is True and xx.is_sales is True:
+            if xx.is_authenticated and xx.is_active is True:
                 login(request, user)
-                messages.success(request, 'You have logged in successfully.')
-                return redirect('home')
-            elif xx.is_authenticated and xx.is_active is True and xx.is_accounts is True:
-                login(request, user)
-                messages.success(request, 'You have logged in successfully.')
-                return redirect('home')
-            elif xx.is_authenticated and xx.is_active is True and xx.is_distributor is True:
-                login(request, user)
-                messages.success(request, 'You have logged in successfully.')
-                return redirect('home')
-            elif xx.is_authenticated and xx.is_active is True and xx.is_warehouse is True:
-                login(request, user)
-                messages.success(request, 'You have logged in successfully.')
-                return redirect('home')
-            elif xx.is_authenticated and xx.is_active is True and xx.is_general is True:
-                login(request, user)
-                messages.success(request, 'You have logged in successfully.')
+                messages.success(request, 'Welcome to Sosoft.')
                 return redirect('home')
             else:
                 messages.info(request,'Confirm your login details or Check with Administrator')
 
         else:
-            messages.success(request,'Please confirm your login details ')
+            messages.info(request,'Please confirm your login details ')
             return redirect('login')
     else:
-        return render(request, 'authenticate/login.html', {})
+        return render(request, 'authenticate/auth_login.html', {})
 
 
 def logout_user(request):
@@ -74,93 +56,101 @@ def logout_user(request):
     return redirect('login')
 
 
-def register_sales(request):
-    if request.method == 'POST':
-        form = EmployeeForm(request.POST,request.FILES)
-        if form.is_valid():
-            sales = form.save(commit=False)
-            sales.is_sales = True
-            sales.save()
-            return redirect('all_sales_list')
-
+def register_user(request):
+    if request.user.is_admin is True:
+        if request.method == 'POST':
+            form = InitialEmployeeForm(request.POST)
+            if form.is_valid():
+                employee = form.save(commit=False)
+                employee.is_active = True
+                employee.save
+                return redirect('all_users')
+        else:
+            form = InitialEmployeeForm()
+        context = {'form': form}
+        return render(request, 'authenticate/form_component.html', context)
     else:
-        form = EmployeeForm()
-    context = {'form': form}
-    return render(request, 'authenticate/register_sales.html', context)
+        raise PermissionDenied
 
 
-def register_account(request):
-    if request.method == 'POST':
-        form = EmployeeForm(request.POST,request.FILES)
-        if form.is_valid():
-            account = form.save(commit=False)
-            account.is_accounts = True
-            account.save()
-            return redirect('all_accounts')
-
+def edit_user(request):
+    if request.user.is_admin:
+        if request.method == 'POST':
+            form = InitialEmployeeEditForm(request.POST)
+            if form.is_valid():
+                employee = form.save(commit=False)
+                employee.is_active = True
+                employee.save
+                return redirect('all_users')
+        else:
+            form = InitialEmployeeForm()
+        context = {'form': form}
+        return render(request, 'authenticate/form_component.html', context)
     else:
-        form = EmployeeForm()
-    context = {'form': form}
-    return render(request, 'authenticate/register_account.html', context)
+        raise PermissionDenied
 
 
-def register_warehouse_manager(request):
-    if request.method == 'POST':
-        form = EmployeeForm(request.POST,request.FILES)
-        if form.is_valid():
-            warehouse = form.save(commit=False)
-            warehouse.is_warehouse = True
-            warehouse.save()
-            return redirect('all_warehouse_manager')
+def view_profile(request,pk):
+    user = CustomUser.objects.get(pk=pk)
+    skill = Skill.objects.filter(user=user).select_related('user')
+    education = Education.objects.filter(user=user).select_related('user')
+    experience = Experience.objects.filter(user=user).select_related('user')
 
-    else:
-        form = EmployeeForm()
-    context = {'form': form}
-    return render(request, 'authenticate/register_warehouse_manager.html', context)
-
-
-def register_distributor(request):
-    if request.method == 'POST':
-        form = DistributorForm(request.POST,request.FILES)
-        if form.is_valid():
-            distributor = form.save(commit=False)
-            distributor.is_distributor = True
-            distributor.save()
-            return redirect('all_distributors')
-
-    else:
-        form = DistributorForm()
-    context = {'form': form}
-    return render(request, 'authenticate/register_distributor.html', context)
-
-
-def register_general(request):
-    if request.method == 'POST':
-        form = EmployeeForm(request.POST,request.FILES)
-        if form.is_valid():
-            general = form.save(commit=False)
-            general.is_general = True
-            general.save()
-            return redirect('all_users')
-
-    else:
-        form = EmployeeForm()
-    context = {'form': form}
-    return render(request, 'authenticate/register_general.html', context)
-
-
-def register_guarantor(request):
-    if request.method == 'POST':
-        form = GuarantorForm(request.POST,request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('guarantors')
-    else:
-        form = GuarantorForm()
     context = {
-        'form': form
+        'skill':skill,
+        'education':education,
+        'experience':experience,
+        'user':user
     }
-    return render(request,'authentication/register_guarantor.html',context)
+    return render(request,'authenticate/user_profile.html',context)
+
+
+def my_profile(request):
+    skill = Skill.object.get(user=request.user)
+    education = Education.objects.get(user=request.user)
+    experience = Experience.objects.get(user=request.user)
+
+    context = {
+        'skill': skill,
+        'education':education,
+        'experience': experience
+    }
+    return render(request,'my_profile.html',context)
+
+
+def edit_profile(request):
+    skill = Skill.objects.get(user=request.user)
+    experience = Experience.objects.get(user=request.user)
+    education = Education.objects.get(user=request.user)
+    if request.method == 'POST':
+        form = EmployeeFormNonEditable(request.POST, instance=request.user)
+        skill_form = SkillForm(request.POST, instance=skill)
+        education_form = EducationForm(request.POST, instance=education)
+        experience_form = ExperienceForm(request.POST, instance=experience)
+        if form.is_valid() and skill_form.is_valid() and education_form.is_valid() and experience_form.is_valid():
+            form.save()
+            skill = skill_form.save(commit=False)
+            skill.user = request.user
+            skill.save()
+            experience = skill_form.save(commit=False)
+            experience.user = request.user
+            experience.save()
+            education = skill_form.save(commit=False)
+            education.user = request.user
+            education.save()
+            return redirect('users_profile')
+    else:
+        form = EmployeeFormNonEditable(instance=request.user)
+        skill_form = SkillForm(instance=skill)
+        education_form = EducationForm(instance=education)
+        experience_form = ExperienceForm(instance=experience)
+    context = {
+        'form': form,
+        'skill_form': skill_form,
+        'education_form': education_form,
+        'experience_form': experience_form
+    }
+    return render(request, 'authenticate/edit_profile.html', context)
 
 
 def activate_user(request,pk):
@@ -180,82 +170,6 @@ def deactivate_user(request,pk):
 
 
 @login_required()
-def users_profile(request,pk):
-    profile = CustomUser.objects.get(pk=pk)
-    context = {
-               'profile':profile
-               }
-    return render(request,'authenticate/users_profile.html',context)
-
-
-@login_required()
-def my_profile(request):
-    if request.user.is_sales is True:
-        if request.method == 'POST':
-            form = EmployeeEditForm(request.POST, instance=request.user)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Update successful.')
-                return redirect('my_profile')
-
-        else:
-            form = EmployeeEditForm(instance=request.user)
-        context = {'form': form}
-        return render(request, 'profile.html', context)
-
-    elif request.user.is_account is True:
-        if request.method == 'POST':
-            form = EmployeeEditForm(request.POST, instance=request.user)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Update successful.')
-                return redirect('my_profile')
-
-        else:
-            form = EmployeeEditForm(instance=request.user)
-        context = {'form': form}
-        return render(request, 'profile.html', context)
-
-    elif request.user.is_warehouse is True:
-        if request.method == 'POST':
-            form = EmployeeEditForm(request.POST, instance=request.user)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Update successful.')
-                return redirect('my_profile')
-
-        else:
-            form = EmployeeEditForm(instance=request.user)
-        context = {'form': form}
-        return render(request, 'profile.html', context)
-
-    elif request.user.is_distributor is True:
-        if request.method == 'POST':
-            form = EmployeeEditForm(request.POST, instance=request.user)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Update successful.')
-                return redirect('my_profile')
-
-        else:
-            form = EmployeeEditForm(instance=request.user)
-        context = {'form': form}
-        return render(request, 'profile.html', context)
-    else:
-        if request.method == 'POST':
-            form = EmployeeEditForm(request.POST, instance=request.user)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Update successful.')
-                return redirect('my_profile')
-
-        else:
-            form = EmployeeEditForm(instance=request.user)
-        context = {'form': form}
-        return render(request, 'profile.html', context)
-
-
-@login_required()
 def change_my_password(request):
     if request.method == 'POST':
         form = PasswordChangeForm(data=request.POST , user=request.user)
@@ -272,7 +186,7 @@ def change_my_password(request):
 
 
 def my_users(request):
-    all_users = CustomUser.objects.all()
+    all_users = CustomUser.objects.all().exclude(pk=1)
     context = {
         'all_users': all_users
     }
@@ -295,12 +209,20 @@ def account_list(request):
     return render(request,'authenticate/account_list.html',context)
 
 
-def warehouse_manager_list(request):
+def warehouse_list(request):
     all_warehouse_manager = CustomUser.objects.filter(is_warehouse=True)
     context = {
         'all_warehouse_manager' : all_warehouse_manager
     }
     return render(request,'authenticate/warehouse_manager_list.html',context)
+
+
+def purchasing_list(request):
+    all_purchasing = CustomUser.objects.filter(is_purchase=True)
+    context = {
+        'all_purchasing' : all_purchasing
+    }
+    return render(request,'authenticate/purchasing_list.html',context)
 
 
 def distributor_list(request):
@@ -309,3 +231,30 @@ def distributor_list(request):
         'all_distributors':all_distributors
     }
     return render(request,'authenticate/distributor_list.html',context)
+
+
+def supplier_list(request):
+    all_suppliers = CustomUser.objects.filter(is_supplier=True)
+    context = {
+        'all_suppliers':all_suppliers
+    }
+    return render(request,'authenticate/suppliers_list.html',context)
+
+
+def create_department(request):
+    if request.method == 'POST':
+        form = DepartmentForm(request.POST)
+        if form.is_valid():
+            dept = form.save(commit=False)
+            dept.is_member = True
+            dept.save()
+            return redirect('all_departments')
+    else:
+        form = DepartmentForm()
+    context = {
+        'form':form
+    }
+    context = {
+        'form':form
+    }
+    return render(request,'product/create_department.html',context)

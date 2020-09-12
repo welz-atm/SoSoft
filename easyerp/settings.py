@@ -44,6 +44,15 @@ INSTALLED_APPS = [
     'product',
     'django_countries',
     'paystack',
+    'emails',
+    'hr',
+    'order',
+    'sales',
+    'production',
+    'requisition',
+    'warehouse',
+    'invoice',
+    'celery',
 ]
 
 MIDDLEWARE = [
@@ -140,3 +149,9 @@ PAYSTACK_SECRET_KEY = 'sk_test_509842f4065b9a91e08f24c4498caf646ea4e8af'
 PAYSTACK_FAILED_URL = reverse_lazy('failed')
 
 PAYSTACK_SUCCESS_URL = reverse_lazy('success')
+
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'

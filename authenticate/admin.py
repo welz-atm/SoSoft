@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
-from .models import CustomUser,Guarantor
+from .models import CustomUser,Guarantor,SalesDept,DistributorDept
 
 
 class UserCreationForm(forms.ModelForm):
@@ -80,6 +80,15 @@ class GuarantorAdmin(admin.ModelAdmin):
     list_display = ('first_name','last_name','address','user','address','state','telephone',)
 
 
+class SalesDeptAdmin(admin.ModelAdmin):
+    list_display = ('role',)
+
+
+class DistributorDeptAdmin(admin.ModelAdmin):
+    list_display = ('role',)
+
+
 admin.site.register(CustomUser, UserAdmin)
+admin.site.register(SalesDept, SalesDeptAdmin)
 admin.site.unregister(Group)
 admin.site.register(Guarantor,GuarantorAdmin)

@@ -22,6 +22,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('authenticate.urls')),
     path('product/', include('product.urls')),
+    path('order/', include('order.urls')),
+    path('sales/', include('sales.urls')),
+    path('invoice/', include('invoice.urls')),
+    path('requisition/', include('requisition.urls')),
+    path('production/', include('production.urls')),
+    path('warehouse/', include('warehouse.urls')),
+    path('hr/', include('hr.urls')),
+    path('emails/', include('emails.urls')),
     path("paystack", include(('paystack.urls','paystack'),namespace='paystack')),
 ]
 

@@ -1,9 +1,13 @@
 from django.contrib import admin
-from .models import Product,Approval,Warehouse,Order,OrderItem,Production
+from .models import Product,Approval,Warehouse,Order,OrderItem,Production,WarehouseItem,Sales,Payment,Item
 
 
 class WarehouseAdmin(admin.ModelAdmin):
-    list_display = ('name','address','state','created_by',)
+    list_display = ('name','address','state','owner',)
+
+
+class WarehouseItemAdmin(admin.ModelAdmin):
+    list_display = ('date','product','received','supplied',)
 
 
 class ProductAdmin(admin.ModelAdmin):
@@ -30,9 +34,27 @@ class ProductionAdmin(admin.ModelAdmin):
     list_filter = ('date','product',)
 
 
+class SalesAdmin(admin.ModelAdmin):
+    list_display = ('product','quantity','sold_by',)
+    list_filter = ('product','quantity','sold_by',)
+
+
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('date','user','reference','amount','channel','status',)
+    list_filter = ('date','user','reference','channel','status',)
+
+
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ('name','description',)
+
+
+admin.site.register(Sales, SalesAdmin)
 admin.site.register(Product, ProductAdmin)
+admin.site.register(Payment, PaymentAdmin)
 admin.site.register(Approval , ApprovalAdmin)
-admin.site.register(Warehouse,WarehouseAdmin)
-admin.site.register(Order,OrderAdmin)
-admin.site.register(OrderItem,OrderItemAdmin)
-admin.site.register(Production,ProductionAdmin)
+admin.site.register(Warehouse, WarehouseAdmin)
+admin.site.register(WarehouseItem, WarehouseItemAdmin)
+admin.site.register(Order, OrderAdmin)
+admin.site.register(OrderItem, OrderItemAdmin)
+admin.site.register(Production, ProductionAdmin)
+admin.site.register(Item, ItemAdmin)
