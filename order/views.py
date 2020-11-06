@@ -73,12 +73,12 @@ def add_cart(request):
                 order.order.add(order_item)
                 messages.info(request, "Product Added")
                 return redirect("order_summary")
-    else:
-        form = OrderItemForm()
-    context = {
-        'form': form
-    }
-    return render(request,'product/create_order.html',context)
+		else:
+			form = OrderItemForm()
+		context = {
+			'form': form
+		}
+		return render(request,'product/create_order.html',context)
 
 
 @login_required()
